@@ -1,0 +1,14 @@
+[ENGINE]
+
+#DO NOT CHANGE THIS.
+Response File Version=1.0.0.0.0
+
+[GENERIC]
+
+#This will be blank when there is nothing to be de-installed in distribution level
+SELECTED_DISTRIBUTION=WebLogic Server~12.1.2.0.0
+
+#The oracle home location. This can be an existing Oracle Home or a new Oracle Home
+ORACLE_HOME=/www/web/product/fmw_1/
+
+

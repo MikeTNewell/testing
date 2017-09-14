@@ -1,0 +1,5 @@
+**/*.rpm
+**/*.jar
+**/*.zip
+**/*.tar.gz
+.idea/

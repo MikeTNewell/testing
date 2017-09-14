@@ -1,0 +1,81 @@
+#!/bin/sh
+# ########################################################################
+# chkconfig: 235 91 35
+#
+# description: Node Manager start/stop script to manage WLS runtime lifecycle.
+#
+# processname: nodemanager
+#
+# USAGE:
+#       cd /etc/init.d
+#       chmod 755 nodemanager
+#       chkconfig --add nodemanager
+#       chkconfig --list nodemanager
+#       chkconfig nodemanager on
+#
+# $HeadURL:  $
+# $LastChangedBy: $
+# $LastChangedDate: $
+# $LastChangedRevision: $
+#
+# LOG
+# yyyy/mm/dd [user]: [version] [notes]
+# 2014/01/20 cgwong: [v1.0.0] Creation.
+# 2014/01/21 cgwong: [v1.0.1] Updated comments and default BIN_DIR
+# 2014/03/19 cgwong: [v1.0.2] Updated comments and script name
+# ########################################################################
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# -- Variables -- #
+# Customize to suite nodemanager type, i.e. host or domain
+# based nodemanager. Domain type will need multiple processes and scripts, 
+# one for each. Also ensure the BIN_DIR is set correctly for each environment.
+RETVAL=0
+SERVICE="nodemanager"
+USER="web"
+BIN_DIR="/www/web/product/admin/nodemanager"
+LOCK_FILE="/var/lock/subsys/${SERVICE}"
+
+# -- Functions -- #
+start() 
+{
+  echo "Starting Node Manager"
+  su - ${USER} -c "${BIN_DIR}/startNodeManager.sh" >/dev/null 2>&1
+  RETVAL=$?
+  [ $RETVAL -eq 0 ] && success || failure
+  echo
+  [ $RETVAL -eq 0 ] && touch ${LOCK_FILE}
+  return $RETVAL
+} 
+
+stop() 
+{
+  echo "Stopping Node Manager"
+  su - ${USER} -c "${BIN_DIR}/stopNodeManager.sh" >/dev/null 2>&1
+  RETVAL=$?
+  [ $RETVAL -eq 0 ] && success || failure
+  echo
+  [ $RETVAL -eq 0 ] && rm -r ${LOCK_FILE}
+  return $RETVAL
+} 
+
+# -- Main code -- #
+case "$1" in
+  start)
+    start
+    ;;
+  stop)
+    stop
+    ;;
+  restart)
+    stop
+    start
+    ;;
+  *)
+    echo $"Usage: $0 {start|stop|restart}"
+    exit 1
+esac 
+
+exit $?

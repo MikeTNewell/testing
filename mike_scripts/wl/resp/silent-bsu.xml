@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Silent installer option -mode=silent -silent_xml=/www/web/slib/wls/rsp/silent-bsu.xml -log="/www/web/logs/inst-silent-bsu.log" -->
+<!-- Specify values for each data-value name as follows:
+BEAHOME - Complete pathname to the Middleware Home directory that will contain this installation.
+
+COMPONENT_PATHS - Components and subcomponents to be installed. To install multiple components, separate the components
+                  with a bar (|). To install subcomponents, specify a component/subcomponent combination. For example,
+                  to install Core Application Server, use "WebLogic Server/Core Application Server".
+-->
+<domain-template-descriptor>
+  <input-fields>
+    <data-value name="BEAHOME" value="/www/web/product/fmw_1" />
+    <data-value name="COMPONENT_PATHS" value="Common Infrastructure Engineering|Oracle WebLogic Smart Update" />
+  </input-fields>
+</domain-template-descriptor>

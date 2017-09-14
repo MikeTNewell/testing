@@ -1,0 +1,24 @@
+######################################################
+# NAME: weblogic.lr
+#
+# DESC: logrotate configuration file for WebLogic Server files.
+#
+# LOG:
+# yyyy/mm/dd [user] - [notes]
+# 2014/02/18 cgwong - [v1.0.0] Creation from notes.
+# 2014/03/10 cgwong - [v1.0.1] Updated to UNIX format
+######################################################
+
+# Global options
+compress
+
+# WLS logs
+/www/web/product/fmw_1/wlserver/configuration/domains/base_domain/servers/AdminServer/logs/AdminServer.out
+{
+  weekly
+  rotate 5
+  size=5M
+  copytruncate
+  missingok
+  notifempty
+}

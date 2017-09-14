@@ -1,0 +1,14 @@
+DEVICE=eth0
+BOOTPROTO=none
+HWADDR=00:0c:29:11:ec:3c
+IPV6INIT=yes
+NM_CONTROLLED=yes
+ONBOOT=yes
+TYPE=Ethernet
+UUID="aa7cb72c-dd2d-4e8b-ba52-70b87245ae89"
+IPADDR=172.16.57.169
+                NETMASK=255.255.255.0
+                GATEWAY=172.16.57.2
+                DNS1=172.16.57.2
+                DNS2=8.8.8.8
+USERCTL=no

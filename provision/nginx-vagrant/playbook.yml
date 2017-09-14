@@ -1,0 +1,65 @@
+---
+- hosts: all
+  become: True
+  tasks:
+    - include: tasks/deps.yml
+
+    - name: Copy NGINX repo
+      copy:
+         src: files/nginx.repo
+         dest: /etc/yum.repos.d/
+ 
+    - name: Installing NGINX
+      yum:
+         name: nginx
+         state: latest
+
+    - name: Copy config file
+      copy: 
+         src: config/nginx.conf
+         dest: /etc/nginx/nginx.conf
+
+    - name: Extract application.zip into /opt/application/
+      unarchive:
+         src: ./application.zip
+         dest: /opt
+ 
+    - name: Copy cert
+      copy: 
+         src: files/self-signed.crt
+         dest: /etc/ssl/certs/self-signed.crt
+ 
+    - name: Copy private key
+      copy: 
+         src: files/self-signed.key
+         dest: /etc/ssl/certs/self-signed.key
+
+    - name: Starting nginx
+      service:
+        name: nginx
+        state: started 
+
+    - name: download RUNIT install script
+      shell: "curl -s https://packagecloud.io/install/repositories/imeyer/runit/script.rpm.sh | sudo bash"
+
+    - name: install runit
+      yum:
+         name: runit
+         state: present
+         update_cache: yes
+
+    - name: start and enable runit service
+      service:
+         name: runsvdir
+         arguments: /etc/service
+         enabled: yes
+         state: started
+
+    - name: service start
+      runit:
+         name: application
+         enabled: yes
+         service_dir: '/etc/service'
+         service_src: '/opt'
+         state: started
+

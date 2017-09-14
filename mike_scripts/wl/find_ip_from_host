@@ -1,0 +1,10 @@
+#!/bin/sh
+# A script for any sh-like shell (bash, ksh, zsh)
+
+NAMES=namelist
+ADDYS=iplist
+
+for i in `cat $NAMES`
+do
+host $i | awk '{print $1, $4}'
+done > $ADDYS

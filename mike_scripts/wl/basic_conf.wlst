@@ -1,0 +1,149 @@
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
+import os;
+import socket;
+ 
+def createFile(directory_name, file_name, content):
+    dedirectory = java.io.File(directory_name);
+    defile = java.io.File(directory_name + '/' + file_name);
+ 
+    writer = None;
+    try:
+        dedirectory.mkdirs();
+        defile.createNewFile();
+        writer = java.io.FileWriter(defile);
+        writer.write(content);
+    finally:
+        try:
+            print 'WRITING FILE ' + file_name;
+            if writer != None:
+                writer.flush();
+                writer.close();
+        except java.io.IOException, e:
+            e.printStackTrace();
+            
+def decrypt_password(encrypted_password, domain_configuration_home):
+    encryption_service = weblogic.security.internal.SerializedSystemIni.getEncryptionService(domain_configuration_home);
+    encrypted_service = weblogic.security.internal.encryption.ClearOrEncryptedService(encryption_service);
+    decrypted_password = encrypted_service.decrypt(encrypted_password);
+    print "Clear text password: " + decrypted_password;
+ 
+print 'CREATE VARIABLES';
+domain_application_home = os.getenv('DOMAIN_APPLICATION_HOME');
+domain_configuration_home = os.getenv('DOMAIN_CONFIGURATION_HOME');
+domain_name = os.getenv('DOMAIN_NAME');
+fusion_middleware_home = os.getenv('FUSION_MIDDLEWARE_HOME');
+java_home = os.getenv('JAVA_HOME');
+middleware_home = os.getenv('MIDDLEWARE_HOME');
+node_manager_home = os.getenv('NODE_MANAGER_HOME');
+weblogic_home = os.getenv('WEBLOGIC_HOME');
+ 
+node_manager_listen_address = socket.gethostname();
+ 
+print 'CREATE TEMPLATE PATHS';
+weblogic_template=weblogic_home + '/common/templates/wls/wls.jar';
+ 
+print 'CREATE DOMAIN';
+readTemplate(weblogic_template);
+setOption('DomainName', domain_name);
+setOption('OverwriteDomain', 'true');
+setOption('JavaHome', java_home);
+setOption('ServerStartMode', 'prod');
+setOption('NodeManagerType', 'CustomLocationNodeManager');
+setOption('NodeManagerHome', node_manager_home);
+setOption('AppDir', domain_application_home);
+cd('/Security/base_domain/User/weblogic');
+cmo.setName(admin_username);
+cmo.setUserPassword(admin_password);
+cd('/');
+ 
+print "SAVE DOMAIN";
+writeDomain(domain_configuration_home);
+closeTemplate();
+ 
+print 'READ DOMAIN';
+readDomain(domain_configuration_home);
+ 
+#print 'ENABLE WEBLOGIC PROXY PLUGIN';
+#create(domain_name,'WebAppContainer');
+#cd('/WebAppContainer/' + domain_name);
+#cmo.setWeblogicPluginEnabled(java.lang.Boolean('true'));
+#cmo.setXPoweredByHeaderLevel('SHORT');
+ 
+print "SET NODE MANAGER CREDENTIALS";
+cd("/SecurityConfiguration/" + domain_name);
+#encrypted_password = encrypt(admin_password, domain_configuration_home);
+#decrypt_password(encrypted_password, domain_configuration_home);
+#cmo.setCredentialEncrypted(encrypted_password);
+cmo.setNodeManagerUsername(node_manager_username);
+cmo.setNodeManagerPasswordEncrypted(node_manager_password);
+ 
+print "DISABLE HOSTNAME VERIFICATION";
+cd('/Server/' + admin_server_name);
+cmo.setListenAddress(admin_server_listen_address);
+cmo.setListenPort(int(admin_server_listen_port));
+create(admin_server_name,'SSL');
+cd('SSL/' + admin_server_name);
+cmo.setHostnameVerificationIgnored(true);
+cmo.setHostnameVerifier(None);
+cmo.setTwoWaySSLEnabled(false);
+cmo.setClientCertificateEnforced(false);
+ 
+print "SET UP LDAP CONFIGURATION"
+cd('/SecurityConfiguration/'+ domain_name +'/Realms/myrealm');
+#create('LDAPAuthenticator', 'weblogic.security.providers.authentication.LDAPAuthenticator', 'AuthenticationProvider');
+ 
+# order can only be changed in online mode
+#try:
+# set('AuthenticationProviders',jarray.array([ObjectName('Security:Name=myrealmLDAPAuthenticator'), ObjectName('Security:Name=myrealmDefaultAuthenticator'), ObjectName('Security:Name=myrealmDefaultIdentityAsserter')], ObjectName));
+#except java.lang.Exception, e:
+# dumpStack();
+ 
+cd('AuthenticationProviders/DefaultAuthenticator');
+set('ControlFlag', 'SUFFICIENT');
+cd('../../');
+ 
+#cd('AuthenticationProviders/LDAPAuthenticator');
+#set('ControlFlag', 'SUFFICIENT');
+#set('PropagateCauseForLoginException', 'true');
+#set('Principal', 'CN=PrincipalUser,CN=Users,DC=mm,DC=local');
+#set('CredentialEncrypted', 'password');
+#set('Host', 'dc.mm');
+#set('UserBaseDN', 'OU=Tenants,DC=mm,DC=local');
+#set('AllUsersFilter', '(&(cn=*)(objectclass=user))');
+#set('UserFromNameFilter', '(&(cn=%u)(objectclass=user))');
+#set('UserObjectClass', 'user');
+#set('UserNameAttribute', 'cn');
+#set('GroupBaseDN', 'OU=groups,DC=mm,DC=local');
+#set('AllGroupsFilter', '(&(cn=*)(objectclass=group))');
+#set('GroupFromNameFilter', '(&(cn=%g)(objectclass=group))');
+#set('GuidAttribute', 'objectguid');
+#set('StaticGroupObjectClass', 'group');
+#set('StaticGroupDNsfromMemberDNFilter', '(&(member=%M)(objectclass=group))');
+#set('StaticMemberDNAttribute', 'member');
+ 
+print 'SAVE CHANGES';
+updateDomain();
+closeDomain();
+ 
+print 'CREATE FILES';
+directory_name = domain_configuration_home + '/servers/'+ admin_server_name +'/security';
+file_name = 'boot.properties';
+content = 'username=' + admin_username + '\npassword=' + admin_password;
+createFile(directory_name, file_name, content);
+ 
+directory_name = domain_application_home;
+file_name = 'readme.txt';
+content = 'This directory contains deployment files and deployment plans.\nTo set-up a deployment, create a directory with the name of the application.\nSubsequently, create two sub-directories called app and plan.\nThe app directory contains the deployment artifact.\nThe plan directory contains the deployment plan.';
+createFile(directory_name, file_name, content);
+ 
+directory_name = node_manager_home;
+file_name = 'nodemanager.properties';
+if node_manager_mode == 'plain':
+    content='DomainsFile=' + node_manager_home + '/nodemanager.domains\nLogLimit=0\nPropertiesVersion=12.2.1\nAuthenticationEnabled=true\nNodeManagerHome=' + node_manager_home + '\nJavaHome=' + java_home +'\nLogLevel=INFO\nDomainsFileEnabled=true\nStartScriptName=startWebLogic.sh\nListenAddress=' + node_manager_listen_address + '\nNativeVersionEnabled=true\nListenPort=' + node_manager_listen_port + '\nLogToStderr=true\nSecureListener=false\nLogCount=1\nStopScriptEnabled=false\nQuitEnabled=false\nLogAppend=true\nStateCheckInterval=500\nCrashRecoveryEnabled=true\nStartScriptEnabled=true\nLogFile=' + node_manager_home + '/nodemanager.log\nLogFormatter=weblogic.nodemanager.server.LogFormatter\nListenBacklog=50';
+else:
+    content='DomainsFile=' + node_manager_home + '/nodemanager.domains\nLogLimit=0\nPropertiesVersion=12.2.1\nAuthenticationEnabled=true\nNodeManagerHome=' + node_manager_home + '\nJavaHome=' + java_home +'\nLogLevel=INFO\nDomainsFileEnabled=true\nStartScriptName=startWebLogic.sh\nListenAddress=' + node_manager_listen_address + '\nNativeVersionEnabled=true\nListenPort=' + node_manager_listen_port + '\nLogToStderr=true\nSecureListener=true\nLogCount=1\nStopScriptEnabled=false\nQuitEnabled=false\nLogAppend=true\nStateCheckInterval=500\nCrashRecoveryEnabled=true\nStartScriptEnabled=true\nLogFile=' + node_manager_home + '/nodemanager.log\nLogFormatter=weblogic.nodemanager.server.LogFormatter\nListenBacklog=50';
+createFile(directory_name, file_name, content);
+

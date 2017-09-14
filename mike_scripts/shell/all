@@ -1,0 +1,16 @@
+this_script=${0##*/}
+
+if [ $# -lt 2 ]; then
+  echo "Usage:"
+  echo " $this_script <host file> <command> <options ...>"
+  echo " use {#} in options to assign id:0..n to commands"
+else
+  id=0
+  opt_=${@:2}
+  grep -v '^#' $1 | while read i p
+  do
+    opts=${opt_//\{#\}/$id}
+    ssh $i -p $p $opts < /dev/null
+    id=$[ $id + 1 ]
+  done
+fi

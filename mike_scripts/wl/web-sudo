@@ -1,0 +1,32 @@
+# #################################################################
+# NAME: web-sudo
+#
+# DESC: SUDO commands for Web team
+#       Add file to /etc/sudoers.d for sudo version 1.7 and higher.
+#       Ensure line "#includedir /etc/sudoers.d" exists in /etc/sudoers file.
+#
+# LOG
+# yyyy/mm/dd [user]: [notes]
+# 2013/11/12 cgwong: Created file from previous (v1.0)
+# 2014/01/17 cgwong: [v1.0.1] Updated comments
+# 2014/03/10 cgwong: [v1.1.0] Corrected syntax errors and updated to UNIX format
+# 2014/07/08 cgwong: [v1.1.1] Minor update to comments verbiage.
+# #################################################################
+
+# ##### BEGIN WEB TEAM SPECIFICATIONS ##### #
+
+# # Cmnd aliases specification # #
+
+# Web clone commands (root)
+Cmnd_Alias ORA_PROV_ROOT = /bin/tar, /www/web/oraInventory/createCentralInventory.sh
+
+# # Runas aliases specification # #
+
+# Web accounts
+Runas_Alias WEB_OWNERS = web
+
+# Web access
+%nam-web-admins ALL = (WEB_OWNERS) ALL
+%nam-web-admins ALL = (root) ORA_PROV_ROOT
+
+# ##### END WEB TEAM SPECIFICATIONS ##### #

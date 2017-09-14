@@ -1,0 +1,21 @@
+if [ $# -lt 1 ]; then
+  echo "E.g.: <script name>  <subnet>  <from>  <to>"
+  echo "      default:       192.168.1      1   255"
+else
+  subnet=$1
+  [ -z $2 ] && from=1 || from=$2
+  [ -z $3 ] && to=255 || to=$3
+  i=$from
+  case "`uname`" in
+    CYGWIN*) # cygwin use windows ping
+      while [ $i -le $to ]; do
+        ([ -z "`ping $subnet.$i -n 1 | grep TTL`" ] || echo "$subnet.$i" &)
+        i=$(($i+1))
+      done;;
+    *)
+      while [ $i -le $to ]; do
+        (ping $subnet.$i -c 1 > /dev/null && echo "$subnet.$i" &)
+        i=$(($i+1))
+      done;;
+  esac
+fi
